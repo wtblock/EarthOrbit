@@ -1,6 +1,7 @@
 
-// ChildFrm.cpp : implementation of the CChildFrame class
-//
+/////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2022 by W. T. Block, All Rights Reserved
+/////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
 #include "EarthOrbit.h"
@@ -11,46 +12,46 @@
 #define new DEBUG_NEW
 #endif
 
-// CChildFrame
+/////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_DYNCREATE( CChildFrame, CMDIChildWndEx )
 
-IMPLEMENT_DYNCREATE(CChildFrame, CMDIChildWnd)
-
-BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
+/////////////////////////////////////////////////////////////////////////////
+BEGIN_MESSAGE_MAP( CChildFrame, CMDIChildWndEx )
 END_MESSAGE_MAP()
 
-// CChildFrame construction/destruction
-
+/////////////////////////////////////////////////////////////////////////////
 CChildFrame::CChildFrame()
 {
 	// TODO: add member initialization code here
 }
 
+/////////////////////////////////////////////////////////////////////////////
 CChildFrame::~CChildFrame()
 {
 }
 
-
-BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
+/////////////////////////////////////////////////////////////////////////////
+BOOL CChildFrame::PreCreateWindow( CREATESTRUCT& cs )
 {
 	// TODO: Modify the Window class or styles here by modifying the CREATESTRUCT cs
-	if( !CMDIChildWnd::PreCreateWindow(cs) )
+	if ( !CMDIChildWndEx::PreCreateWindow( cs ) )
 		return FALSE;
 
 	return TRUE;
 }
 
-// CChildFrame diagnostics
-
+/////////////////////////////////////////////////////////////////////////////
 #ifdef _DEBUG
 void CChildFrame::AssertValid() const
 {
-	CMDIChildWnd::AssertValid();
+	CMDIChildWndEx::AssertValid();
 }
 
-void CChildFrame::Dump(CDumpContext& dc) const
+/////////////////////////////////////////////////////////////////////////////
+void CChildFrame::Dump( CDumpContext& dc ) const
 {
-	CMDIChildWnd::Dump(dc);
+	CMDIChildWndEx::Dump( dc );
 }
 #endif //_DEBUG
 
-// CChildFrame message handlers
+/////////////////////////////////////////////////////////////////////////////

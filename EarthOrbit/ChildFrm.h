@@ -1,33 +1,36 @@
 
-// ChildFrm.h : interface of the CChildFrame class
-//
+
+/////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2022 by W. T. Block, All Rights Reserved
+/////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-class CChildFrame : public CMDIChildWnd
+/////////////////////////////////////////////////////////////////////////////
+class CChildFrame : public CMDIChildWndEx
 {
-	DECLARE_DYNCREATE(CChildFrame)
+	DECLARE_DYNCREATE( CChildFrame )
 public:
 	CChildFrame();
 
-// Attributes
+	// Attributes
 public:
 
-// Operations
+	// Operations
 public:
 
-// Overrides
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	// Overrides
+	virtual BOOL PreCreateWindow( CREATESTRUCT& cs );
 
-// Implementation
+	// Implementation
 public:
 	virtual ~CChildFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+	virtual void Dump( CDumpContext& dc ) const;
 #endif
 
-// Generated message map functions
+	// Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
 };

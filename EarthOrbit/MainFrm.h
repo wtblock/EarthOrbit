@@ -1,40 +1,47 @@
 
-// MainFrm.h : interface of the CMainFrame class
-//
+/////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2022 by W. T. Block, All Rights Reserved
+/////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-class CMainFrame : public CMDIFrameWnd
+class CMainFrame : public CMDIFrameWndEx
 {
-	DECLARE_DYNAMIC(CMainFrame)
+	DECLARE_DYNAMIC( CMainFrame )
 public:
 	CMainFrame();
 
-// Attributes
+	// Attributes
 public:
 
-// Operations
+	// Operations
 public:
 
-// Overrides
+	// Overrides
 public:
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	virtual BOOL PreCreateWindow( CREATESTRUCT& cs );
+	virtual BOOL LoadFrame( UINT nIDResource, DWORD dwDefaultStyle = WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, CWnd* pParentWnd = NULL, CCreateContext* pContext = NULL );
 
-// Implementation
+	// Implementation
 public:
 	virtual ~CMainFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+	virtual void Dump( CDumpContext& dc ) const;
 #endif
 
 protected:  // control bar embedded members
-	CToolBar          m_wndToolBar;
-	CStatusBar        m_wndStatusBar;
+	CMFCMenuBar       m_wndMenuBar;
+	CMFCToolBar       m_wndToolBar;
+	CMFCStatusBar     m_wndStatusBar;
+	CMFCToolBarImages m_UserImages;
 
-// Generated message map functions
+	// Generated message map functions
 protected:
-	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg int OnCreate( LPCREATESTRUCT lpCreateStruct );
+	afx_msg void OnWindowManager();
+	afx_msg void OnViewCustomize();
+	afx_msg LRESULT OnToolbarCreateNew( WPARAM wp, LPARAM lp );
 	DECLARE_MESSAGE_MAP()
 
 };

@@ -1,31 +1,36 @@
 
-// EarthOrbit.h : main header file for the EarthOrbit application
-//
+
+/////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2022 by W. T. Block, All Rights Reserved
+/////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "include 'stdafx.h' before including this file for PCH"
+#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
 #include "resource.h"       // main symbols
 
-
-// CEarthOrbitApp:
-// See EarthOrbit.cpp for the implementation of this class
-//
-
-class CEarthOrbitApp : public CWinApp
+/////////////////////////////////////////////////////////////////////////////
+class CEarthOrbitApp : public CWinAppEx
 {
 public:
 	CEarthOrbitApp();
 
 
-// Overrides
+	// Overrides
 public:
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();
 
-// Implementation
+	// Implementation
+	BOOL  m_bHiColorIcons;
+
+	virtual void PreLoadState();
+	virtual void LoadCustomState();
+	virtual void SaveCustomState();
+
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 };

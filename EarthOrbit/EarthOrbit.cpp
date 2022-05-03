@@ -1,6 +1,7 @@
 
-// EarthOrbit.cpp : Defines the class behaviors for the application.
-//
+/////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2022 by W. T. Block, All Rights Reserved
+/////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
 #include "afxwinappex.h"
@@ -16,63 +17,58 @@
 #define new DEBUG_NEW
 #endif
 
-
-// CEarthOrbitApp
-
-BEGIN_MESSAGE_MAP(CEarthOrbitApp, CWinApp)
-	ON_COMMAND(ID_APP_ABOUT, &CEarthOrbitApp::OnAppAbout)
+/////////////////////////////////////////////////////////////////////////////
+BEGIN_MESSAGE_MAP( CEarthOrbitApp, CWinAppEx )
+	ON_COMMAND( ID_APP_ABOUT, &CEarthOrbitApp::OnAppAbout )
 	// Standard file based document commands
-	ON_COMMAND(ID_FILE_NEW, &CWinApp::OnFileNew)
-	ON_COMMAND(ID_FILE_OPEN, &CWinApp::OnFileOpen)
+	ON_COMMAND( ID_FILE_NEW, &CWinAppEx::OnFileNew )
+	ON_COMMAND( ID_FILE_OPEN, &CWinAppEx::OnFileOpen )
 	// Standard print setup command
-	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinApp::OnFilePrintSetup)
+	ON_COMMAND( ID_FILE_PRINT_SETUP, &CWinAppEx::OnFilePrintSetup )
 END_MESSAGE_MAP()
 
-
-// CEarthOrbitApp construction
-
+/////////////////////////////////////////////////////////////////////////////
 CEarthOrbitApp::CEarthOrbitApp()
 {
+	m_bHiColorIcons = TRUE;
+
 	// TODO: replace application ID string below with unique ID string; recommended
 	// format for string is CompanyName.ProductName.SubProduct.VersionInformation
-	SetAppID(_T("EarthOrbit.AppID.NoVersion"));
+	SetAppID( _T( "EarthOrbit.AppID.NoVersion" ) );
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
 
-// The one and only CEarthOrbitApp object
-
+/////////////////////////////////////////////////////////////////////////////
 CEarthOrbitApp theApp;
 
-
-// CEarthOrbitApp initialization
-
+/////////////////////////////////////////////////////////////////////////////
 BOOL CEarthOrbitApp::InitInstance()
 {
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
 	INITCOMMONCONTROLSEX InitCtrls;
-	InitCtrls.dwSize = sizeof(InitCtrls);
+	InitCtrls.dwSize = sizeof( InitCtrls );
 	// Set this to include all the common control classes you want to use
 	// in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
-	InitCommonControlsEx(&InitCtrls);
+	InitCommonControlsEx( &InitCtrls );
 
-	CWinApp::InitInstance();
+	CWinAppEx::InitInstance();
 
 
 	// Initialize OLE libraries
-	if (!AfxOleInit())
+	if ( !AfxOleInit() )
 	{
-		AfxMessageBox(IDP_OLE_INIT_FAILED);
+		AfxMessageBox( IDP_OLE_INIT_FAILED );
 		return FALSE;
 	}
 
 	AfxEnableControlContainer();
 
-	EnableTaskbarInteraction(FALSE);
+	EnableTaskbarInteraction();
 
 	// AfxInitRichEdit2() is required to use RichEdit control	
 	// AfxInitRichEdit2();
@@ -84,24 +80,34 @@ BOOL CEarthOrbitApp::InitInstance()
 	// Change the registry key under which our settings are stored
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
-	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
-	LoadStdProfileSettings(16);  // Load standard INI file options (including MRU)
+	SetRegistryKey( _T( "Local AppWizard-Generated Applications" ) );
+	LoadStdProfileSettings( 16 );  // Load standard INI file options (including MRU)
 
+
+	InitContextMenuManager();
+
+	InitKeyboardManager();
+
+	InitTooltipManager();
+	CMFCToolTipInfo ttParams;
+	ttParams.m_bVislManagerTheme = TRUE;
+	theApp.GetTooltipManager()->SetTooltipParams( AFX_TOOLTIP_TYPE_ALL,
+		RUNTIME_CLASS( CMFCToolTipCtrl ), &ttParams );
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
 	CMultiDocTemplate* pDocTemplate;
-	pDocTemplate = new CMultiDocTemplate(IDR_EarthOrbitTYPE,
-		RUNTIME_CLASS(CEarthOrbitDoc),
-		RUNTIME_CLASS(CChildFrame), // custom MDI child frame
-		RUNTIME_CLASS(CEarthOrbitView));
-	if (!pDocTemplate)
+	pDocTemplate = new CMultiDocTemplate( IDR_EarthOrbitTYPE,
+		RUNTIME_CLASS( CEarthOrbitDoc ),
+		RUNTIME_CLASS( CChildFrame ), // custom MDI child frame
+		RUNTIME_CLASS( CEarthOrbitView ) );
+	if ( !pDocTemplate )
 		return FALSE;
-	AddDocTemplate(pDocTemplate);
+	AddDocTemplate( pDocTemplate );
 
 	// create main MDI Frame window
 	CMainFrame* pMainFrame = new CMainFrame;
-	if (!pMainFrame || !pMainFrame->LoadFrame(IDR_MAINFRAME))
+	if ( !pMainFrame || !pMainFrame->LoadFrame( IDR_MAINFRAME ) )
 	{
 		delete pMainFrame;
 		return FALSE;
@@ -115,75 +121,95 @@ BOOL CEarthOrbitApp::InitInstance()
 
 	// Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
+	ParseCommandLine( cmdInfo );
 
 	// Enable DDE Execute open
 	EnableShellOpen();
-	RegisterShellFileTypes(TRUE);
+	RegisterShellFileTypes( TRUE );
 
 
 	// Dispatch commands specified on the command line.  Will return FALSE if
 	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
-	if (!ProcessShellCommand(cmdInfo))
+	if ( !ProcessShellCommand( cmdInfo ) )
 		return FALSE;
 	// The main window has been initialized, so show and update it
-	pMainFrame->ShowWindow(m_nCmdShow);
+	pMainFrame->ShowWindow( m_nCmdShow );
 	pMainFrame->UpdateWindow();
 
 	return TRUE;
 }
 
+/////////////////////////////////////////////////////////////////////////////
 int CEarthOrbitApp::ExitInstance()
 {
 	//TODO: handle additional resources you may have added
-	AfxOleTerm(FALSE);
+	AfxOleTerm( FALSE );
 
-	return CWinApp::ExitInstance();
+	return CWinAppEx::ExitInstance();
 }
 
-// CEarthOrbitApp message handlers
-
-
-// CAboutDlg dialog used for App About
-
+/////////////////////////////////////////////////////////////////////////////
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// Dialog Data
+	// Dialog Data
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUTBOX };
+	enum
+	{
+		IDD = IDD_ABOUTBOX
+	};
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void DoDataExchange( CDataExchange* pDX );    // DDX/DDV support
 
 // Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
 };
 
-CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
+/////////////////////////////////////////////////////////////////////////////
+CAboutDlg::CAboutDlg() : CDialogEx( IDD_ABOUTBOX )
 {
 }
 
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+/////////////////////////////////////////////////////////////////////////////
+void CAboutDlg::DoDataExchange( CDataExchange* pDX )
 {
-	CDialogEx::DoDataExchange(pDX);
+	CDialogEx::DoDataExchange( pDX );
 }
 
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+/////////////////////////////////////////////////////////////////////////////
+BEGIN_MESSAGE_MAP( CAboutDlg, CDialogEx )
 END_MESSAGE_MAP()
 
-// App command to run the dialog
+/////////////////////////////////////////////////////////////////////////////
 void CEarthOrbitApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
 
-// CEarthOrbitApp message handlers
+/////////////////////////////////////////////////////////////////////////////
+void CEarthOrbitApp::PreLoadState()
+{
+	BOOL bNameValid;
+	CString strName;
+	bNameValid = strName.LoadString( IDS_EDIT_MENU );
+	ASSERT( bNameValid );
+	GetContextMenuManager()->AddMenu( strName, IDR_POPUP_EDIT );
+}
 
+/////////////////////////////////////////////////////////////////////////////
+void CEarthOrbitApp::LoadCustomState()
+{
+}
 
+/////////////////////////////////////////////////////////////////////////////
+void CEarthOrbitApp::SaveCustomState()
+{
+}
 
+/////////////////////////////////////////////////////////////////////////////
