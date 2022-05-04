@@ -26,7 +26,8 @@ protected: // create from serialization only
 	int m_nNumPages;
 	bool m_bRunning;
 	bool m_bSingleOrbit;
-	vector<CPoint> m_OrbitPoints;
+	vector<CPoint> m_EarthPoints;
+	vector<CPoint> m_LunarPoints;
 
 	// properties
 public:
@@ -223,49 +224,49 @@ public:
 		double BottomOfView;
 
 	// velocity in meters per second
-	double GetVelocity()
+	double GetLunarVelocity()
 	{
 		CEarthOrbitDoc* pDoc = Document;
-		const double value = pDoc->Velocity;
+		const double value = pDoc->LunarVelocity;
 		return value;
 	}
 	// velocity in meters per second
-	void SetVelocity( double value )
+	void SetLunarVelocity( double value )
 	{
-		Document->Velocity = value;
+		Document->LunarVelocity = value;
 	}
 	// velocity in meters per second
-	__declspec( property( get = GetVelocity, put = SetVelocity ) )
-		double Velocity;
+	__declspec( property( get = GetLunarVelocity, put = SetLunarVelocity ) )
+		double LunarVelocity;
 
 	// horizontal velocity in meters per second
-	double GetHorizontalVelocity()
+	double GetHorizontalLunarVelocity()
 	{
-		const double dRadians = AngleInRadians;
-		const double dVelocity = Velocity;
+		const double dRadians = LunarAngleInRadians;
+		const double dLunarVelocity = LunarVelocity;
 		const double dSine = sin( dRadians );
-		const double value = dVelocity * dSine;
+		const double value = dLunarVelocity * dSine;
 		return value;
 	}
 	// horizontal velocity in meters per second
-	__declspec( property( get = GetHorizontalVelocity ) )
-		double HorizontalVelocity;
+	__declspec( property( get = GetHorizontalLunarVelocity ) )
+		double HorizontalLunarVelocity;
 
 	// vertical velocity in meters per second
-	double GetVerticalVelocity()
+	double GetVerticalLunarVelocity()
 	{
-		const double dRadians = AngleInRadians;
-		const double dVelocity = Velocity;
+		const double dRadians = LunarAngleInRadians;
+		const double dLunarVelocity = LunarVelocity;
 		const double dCosine = cos( dRadians );
-		const double value = dVelocity * dCosine;
+		const double value = dLunarVelocity * dCosine;
 		return value;
 	}
 	// vertical velocity in meters per second
-	__declspec( property( get = GetVerticalVelocity ) )
-		double VerticalVelocity;
+	__declspec( property( get = GetVerticalLunarVelocity ) )
+		double VerticalLunarVelocity;
 
 	// angle in radians of the moon
-	double GetAngleInRadians()
+	double GetLunarAngleInRadians()
 	{
 		// create a rectangle representing the moon 
 		CRect rectMoon = MoonRectangle;
@@ -292,49 +293,160 @@ public:
 		return value;
 	}
 	// angle in radians of the moon
-	__declspec( property( get = GetAngleInRadians ) )
-		double AngleInRadians;
+	__declspec( property( get = GetLunarAngleInRadians ) )
+		double LunarAngleInRadians;
 
 	// angle in degrees of the moon
-	double GetAngleInDegrees()
+	double GetLunarAngleInDegrees()
 	{
 		// angle in radians
-		const double dRadians = AngleInRadians;
+		const double dRadians = LunarAngleInRadians;
 
 		// angle in degrees 
 		const double value = Degrees( dRadians );
 
 		// record the angle
-		AngleInDegrees = value;
+		LunarAngleInDegrees = value;
 
 		return value;
 	}
 	// angle in degrees of the moon
-	void SetAngleInDegrees( double value )
+	void SetLunarAngleInDegrees( double value )
 	{
 		CEarthOrbitDoc* pDoc = Document;
-		pDoc->AngleInDegrees = value;
+		pDoc->LunarAngleInDegrees = value;
 	}
 	// angle in degrees of the moon
-	__declspec( property( get = GetAngleInDegrees, put = SetAngleInDegrees ) )
-		double AngleInDegrees;
+	__declspec( property( get = GetLunarAngleInDegrees, put = SetLunarAngleInDegrees ) )
+		double LunarAngleInDegrees;
 
-	// distance to goal in meters
-	double GetMetersToMoon()
+	// distance to earth in meters
+	double GetLunarDistance()
 	{
 		CEarthOrbitDoc* pDoc = Document;
-		const double value = pDoc->MetersToMoon;
+		const double value = pDoc->LunarDistance;
 		return value;
 	}
-	// distance to goal in meters
-	void SetMetersToMoon( double value )
+	// distance to earth in meters
+	void SetLunarDistance( double value )
 	{
 		CEarthOrbitDoc* pDoc = Document;
-		pDoc->MetersToMoon = value;
+		pDoc->LunarDistance = value;
 	}
-	// distance to goal in meters
-	__declspec( property( get = GetMetersToMoon, put = SetMetersToMoon ) )
-		double MetersToMoon;
+	// distance to earth in meters
+	__declspec( property( get = GetLunarDistance, put = SetLunarDistance ) )
+		double LunarDistance;
+
+	// velocity in meters per second
+	double GetEarthVelocity()
+	{
+		CEarthOrbitDoc* pDoc = Document;
+		const double value = pDoc->EarthVelocity;
+		return value;
+	}
+	// velocity in meters per second
+	void SetEarthVelocity( double value )
+	{
+		Document->EarthVelocity = value;
+	}
+	// velocity in meters per second
+	__declspec( property( get = GetEarthVelocity, put = SetEarthVelocity ) )
+		double EarthVelocity;
+
+	// horizontal velocity in meters per second
+	double GetHorizontalEarthVelocity()
+	{
+		const double dRadians = EarthAngleInRadians;
+		const double dEarthVelocity = EarthVelocity;
+		const double dSine = sin( dRadians );
+		const double value = dEarthVelocity * dSine;
+		return value;
+	}
+	// horizontal velocity in meters per second
+	__declspec( property( get = GetHorizontalEarthVelocity ) )
+		double HorizontalEarthVelocity;
+
+	// vertical velocity in meters per second
+	double GetVerticalEarthVelocity()
+	{
+		const double dRadians = EarthAngleInRadians;
+		const double dEarthVelocity = EarthVelocity;
+		const double dCosine = cos( dRadians );
+		const double value = dEarthVelocity * dCosine;
+		return value;
+	}
+	// vertical velocity in meters per second
+	__declspec( property( get = GetVerticalEarthVelocity ) )
+		double VerticalEarthVelocity;
+
+	// angle in radians of the earth
+	double GetEarthAngleInRadians()
+	{
+		// center of the moon
+		CPoint ptEarth = EarthCenter;
+
+		// triangle where the hypotenuse is the vector from the 
+		// sun to the earth
+		CPoint ptSun = SunCenter;
+
+		const int nX = ptEarth.x - ptSun.x;
+		const int nY = ptSun.y - ptEarth.y;
+
+		// length of the hypotenuse using the Pythagorean theorem
+		const double dH = sqrt( double( nX * nX + nY * nY ) );
+
+		// sine of the angle is the opposite / hypotenuse 
+		const double dSine = double( nY ) / dH;
+
+		// angle in radians
+		const double value = asin( dSine );
+
+		return value;
+	}
+	// angle in radians of the moon
+	__declspec( property( get = GetEarthAngleInRadians ) )
+		double EarthAngleInRadians;
+
+	// angle in degrees of the moon
+	double GetEarthAngleInDegrees()
+	{
+		// angle in radians
+		const double dRadians = EarthAngleInRadians;
+
+		// angle in degrees 
+		const double value = Degrees( dRadians );
+
+		// record the angle
+		EarthAngleInDegrees = value;
+
+		return value;
+	}
+	// angle in degrees of the moon
+	void SetEarthAngleInDegrees( double value )
+	{
+		CEarthOrbitDoc* pDoc = Document;
+		pDoc->EarthAngleInDegrees = value;
+	}
+	// angle in degrees of the moon
+	__declspec( property( get = GetEarthAngleInDegrees, put = SetEarthAngleInDegrees ) )
+		double EarthAngleInDegrees;
+
+	// distance to earth in meters
+	double GetEarthDistance()
+	{
+		CEarthOrbitDoc* pDoc = Document;
+		const double value = pDoc->EarthDistance;
+		return value;
+	}
+	// distance to earth in meters
+	void SetEarthDistance( double value )
+	{
+		CEarthOrbitDoc* pDoc = Document;
+		pDoc->EarthDistance = value;
+	}
+	// distance to earth in meters
+	__declspec( property( get = GetEarthDistance, put = SetEarthDistance ) )
+		double EarthDistance;
 
 	// time in seconds between samples
 	double GetSampleTime()
@@ -356,7 +468,7 @@ public:
 	// meters per inch scale
 	double GetMetersPerInch()
 	{
-		const double dMeters = MetersToMoon;
+		const double dMeters = LunarDistance;
 		const double dMargin = DocumentMargin;
 		const double dInches = DocumentWidth - 2 * dMargin;
 		const double value = dMeters / dInches;
@@ -366,10 +478,10 @@ public:
 	__declspec( property( get = GetMetersPerInch ) )
 		double MetersPerInch;
 
-	// point defining the earth's center
-	CPoint GetEarthCenter()
+	// point defining the sun's center
+	CPoint GetSunCenter()
 	{
-		// get the center of the earth on the document
+		// get the center of the sun on the document
 		const double dDocumentWidth = DocumentWidth;
 		const double dDocumentHeight = DocumentHeight;
 		const int nX = InchesToLogical( dDocumentWidth / 2 );
@@ -377,6 +489,60 @@ public:
 
 		// build the point
 		CPoint value( nX, nY );
+		return value;
+	}
+	// point defining the sun's center
+	__declspec( property( get = GetSunCenter ) )
+		CPoint SunCenter;
+
+	// rectangle defining the sun
+	CRect GetSunRectangle()
+	{
+		// get the center of the sun on the document
+		CPoint ptCenter = SunCenter;
+
+		// rectangle size (width and height) in inches
+		const double dSize = 0.75;
+		const int nSize = InchesToLogical( dSize );
+		CSize size( nSize, nSize );
+
+		// build the rectangle
+		CRect value( ptCenter, size );
+
+		// recenter the rectangle
+		value.OffsetRect( -size.cx / 2, -size.cy / 2 );
+		return value;
+	}
+	// rectangle defining the sun
+	__declspec( property( get = GetSunRectangle ) )
+		CRect SunRectangle;
+
+	// point defining the earth's center
+	CPoint GetEarthCenter()
+	{
+		CEarthOrbitDoc* pDoc = Document;
+
+		// build the point starting with the earth's center
+		CPoint value = SunCenter;
+
+		// x and y coordinates of the earth relative to the sun
+		// in meters
+		const double dMetersX = pDoc->EarthX;
+		const double dMetersY = pDoc->EarthY;
+
+		// x and y coordinates of the earth relative to the sun
+		// in screen inches
+		const double dInchesX = pDoc->EarthScreenInches[ dMetersX ];
+		const double dInchesY = pDoc->EarthScreenInches[ dMetersY ];
+
+		// x and y coordinates of the earth relative to the sun
+		// in logical pixels
+		const int nX = InchesToLogical( dInchesX );
+		const int nY = InchesToLogical( dInchesY );
+
+		// offset the sun center by the earth's relative coordinates
+		value.Offset( nX, nY );
+
 		return value;
 	}
 	// point defining the earth's center
@@ -415,13 +581,13 @@ public:
 
 		// x and y coordinates of the moon relative to the earth
 		// in meters
-		const double dMetersX = pDoc->MoonX;
-		const double dMetersY = pDoc->MoonY;
+		const double dMetersX = pDoc->LunarX;
+		const double dMetersY = pDoc->LunarY;
 
 		// x and y coordinates of the moon relative to the earth
 		// in screen inches
-		const double dInchesX = pDoc->ScreenInches[ dMetersX ];
-		const double dInchesY = pDoc->ScreenInches[ dMetersY ];
+		const double dInchesX = pDoc->LunarScreenInches[ dMetersX ];
+		const double dInchesY = pDoc->LunarScreenInches[ dMetersY ];
 
 		// x and y coordinates of the moon relative to the earth
 		// in logical pixels
@@ -545,10 +711,16 @@ public:
 	// protected methods
 protected:
 	// add the current moon position to the historical points of the lunar orbit
-	void AddOrbitalPoint();
+	void AddLunarPoint();
+
+	// add the current earth position to the historical points of the earth orbit
+	void AddEarthPoint();
 
 	// update the position of the moon for a day
 	void UpdateMoonPosition();
+
+	// update the position of the earth for a day
+	void UpdateEarthPosition();
 
 	// render the page or view
 	void render

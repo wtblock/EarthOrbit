@@ -396,13 +396,16 @@ void CEarthOrbitView::render
 	double dTopOfPage = 0;
 
 	// create a pen to draw with
-	CPen penGray, penRed, penBlue;
+	CPen penGray, penGreen, penRed, penBlue, penYellow;
 
 	// save the entry state
 	const int nDC = pDC->SaveDC();
 
 	// 1 hundredths of an inch
 	const int nGrayWidth = InchesToLogical( 0.01 );
+
+	// 2 hundredths of an inch
+	const int nGreenWidth = InchesToLogical( 0.02 );
 
 	// 2 hundredths of an inch
 	const int nRedWidth = InchesToLogical( 0.02 );
@@ -425,8 +428,14 @@ void CEarthOrbitView::render
 	// blue color
 	const COLORREF rgbBlue = RGB( 0, 0, 255 );
 
+	// yellow color
+	const COLORREF rgbYellow = RGB( 255, 255, 0 );
+
 	// create a solid gray pen 0.05 inches wide
 	penGray.CreatePen( PS_SOLID, nGrayWidth, rgbGray );
+
+	// create a solid gray pen 0.02 inches wide
+	penGreen.CreatePen( PS_SOLID, nGreenWidth, rgbGreen );
 
 	// create a solid blue pen 0.05 inches wide
 	penBlue.CreatePen( PS_SOLID, nBlueWidth, rgbBlue );
@@ -434,14 +443,20 @@ void CEarthOrbitView::render
 	// create a solid red pen 0.02 inches wide
 	penRed.CreatePen( PS_SOLID, nRedWidth, rgbRed );
 
+	// create a solid yellow pen 0.02 inches wide
+	penYellow.CreatePen( PS_SOLID, nRedWidth, rgbYellow );
+
 	// create a green and gray brush
-	CBrush brGreen, brGray;
+	CBrush brGreen, brGray, brYellow;
 
 	// create a green brush
 	brGreen.CreateSolidBrush( rgbGreen );
 
 	// create a gray brush
 	brGray.CreateSolidBrush( rgbGray );
+
+	// create a gray brush
+	brYellow.CreateSolidBrush( rgbYellow );
 
 	CBrush brNull;
 	brNull.CreateStockObject( NULL_BRUSH );
@@ -454,36 +469,36 @@ void CEarthOrbitView::render
 	);
 
 	// setting labels
-	CString csAngle, csVelocity, csVelocityX, csVelocityY,
-		csDistance, csMoonX, csMoonY,
+	CString csEarthAngle, csEarthVelocity, csEarthVelocityX, csEarthVelocityY,
+		csDistance, csEarthX, csEarthY,
 		csSample, csSamplesPerDay, csRunningTime;
-	csVelocity.Format
+	csEarthVelocity.Format
 	(
-		_T( "Initial velocity in meters per second: %0.0f" ), Velocity
+		_T( "Initial velocity in meters per second: %0.0f" ), EarthVelocity
 	);
-	csVelocityX.Format
+	csEarthVelocityX.Format
 	(
 		_T( "X-velocity in meters per second: %0.0f" ),
-		HorizontalVelocity
+		HorizontalEarthVelocity
 	);
-	csVelocityY.Format
+	csEarthVelocityY.Format
 	(
 		_T( "Y-velocity in meters per second: %0.0f" ),
-		VerticalVelocity
+		VerticalEarthVelocity
 	);
 	csDistance.Format
 	(
-		_T( "Distance to moon in meters: %0.0f" ), MetersToMoon
+		_T( "Distance to sun in meters: %0.0f" ), EarthDistance
 	);
-	csMoonX.Format
+	csEarthX.Format
 	(
-		_T( "X Distance to moon in meters: %0.0f" ), pDoc->MoonX
+		_T( "X Distance to sun in meters: %0.0f" ), pDoc->EarthX
 	);
-	csMoonY.Format
+	csEarthY.Format
 	(
-		_T( "Y Distance to moon in meters: %0.0f" ), pDoc->MoonY
+		_T( "Y Distance to sun in meters: %0.0f" ), pDoc->EarthY
 	);
-	csAngle.Format( _T( "Angle in degrees: %0.02f" ), AngleInDegrees );
+	csEarthAngle.Format( _T( "Earth Angle in degrees: %0.02f" ), EarthAngleInDegrees );
 	csSample.Format
 	(
 		_T( "Time between samples in seconds: %0.0f" ), SampleTime
@@ -509,14 +524,24 @@ void CEarthOrbitView::render
 	// account for the shift of the view due to scrolling or printed pages
 	pDC->SetWindowOrg( 0, -nPageOffset );
 
-	// gray line for the axes
+	// green line for the earth orbit
+	pDC->SelectObject( &penGreen );
+
+	// draw historical moon images and orbital path
+	size_t nPoints = m_EarthPoints.size();
+	if ( nPoints != 0 )
+	{
+		pDC->Polyline( &m_EarthPoints[ 0 ], (int)nPoints );
+	}
+
+	// gray line for the axes and lunar orbit
 	pDC->SelectObject( &penGray );
 
 	// draw historical moon images and orbital path
-	const size_t nPoints = m_OrbitPoints.size();
+	nPoints = m_LunarPoints.size();
 	if ( nPoints != 0 )
 	{
-		pDC->Polyline( &m_OrbitPoints[ 0 ], (int)nPoints );
+		pDC->Polyline( &m_LunarPoints[ 0 ], (int)nPoints );
 	}
 
 	// draw settings information
@@ -528,11 +553,11 @@ void CEarthOrbitView::render
 	// draw the X and Y axes
 	const int nDocWidth = InchesToLogical( DocumentWidth );
 	const int nDocHeight = InchesToLogical( DocumentHeight );
-	CPoint ptEarth = EarthCenter;
-	int nX1 = ptEarth.x - nMargin * 20;
-	int nY1 = ptEarth.y - nMargin * 16;
-	int nX2 = ptEarth.x + nMargin * 20;
-	int nY2 = ptEarth.y + nMargin * 16;
+	CPoint ptSun = SunCenter;
+	int nX1 = ptSun.x - nMargin * 20;
+	int nY1 = ptSun.y - nMargin * 16;
+	int nX2 = ptSun.x + nMargin * 20;
+	int nY2 = ptSun.y + nMargin * 16;
 	for ( int nX = nX1; nX <= nX2; nX += 4 * nMargin )
 	{
 		pDC->MoveTo( nX, nY1 );
@@ -544,10 +569,10 @@ void CEarthOrbitView::render
 		pDC->LineTo( nX2, nY );
 	}
 
-	pDC->TextOut( nMargin, ptEarth.y, _T( "X" ) );
-	pDC->TextOut( nDocWidth - nMargin, ptEarth.y, _T( "X" ) );
-	pDC->TextOut( ptEarth.x, nMargin, _T( "Y" ) );
-	pDC->TextOut( ptEarth.x, nTextHeight + nDocHeight - nMargin, _T( "Y" ) );
+	pDC->TextOut( nMargin, ptSun.y, _T( "X" ) );
+	pDC->TextOut( nDocWidth - nMargin, ptSun.y, _T( "X" ) );
+	pDC->TextOut( ptSun.x, nMargin, _T( "Y" ) );
+	pDC->TextOut( ptSun.x, nTextHeight + nDocHeight - nMargin, _T( "Y" ) );
 
 	// right justified to the right margin
 	int nX = LogicalDocumentWidth - 2 * nMargin;
@@ -555,17 +580,17 @@ void CEarthOrbitView::render
 
 	pDC->TextOut( nX, nY, csDistance );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csMoonX );
+	pDC->TextOut( nX, nY, csEarthX );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csMoonY );
+	pDC->TextOut( nX, nY, csEarthY );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csVelocity );
+	pDC->TextOut( nX, nY, csEarthVelocity );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csVelocityX );
+	pDC->TextOut( nX, nY, csEarthVelocityX );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csVelocityY );
+	pDC->TextOut( nX, nY, csEarthVelocityY );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csAngle );
+	pDC->TextOut( nX, nY, csEarthAngle );
 	nY += nTextHeight;
 	pDC->TextOut( nX, nY, csSample );
 	nY += nTextHeight;
@@ -579,6 +604,9 @@ void CEarthOrbitView::render
 
 	// create a rectangle representing the moon 
 	CRect rectMoon = MoonRectangle;
+
+	// center point of the moon
+	CPoint ptEarth = EarthCenter;
 
 	// center point of the moon
 	CPoint ptMoon = MoonCenter;
@@ -596,16 +624,26 @@ void CEarthOrbitView::render
 	// draw the earth as an ellipse that fits into the rectangle
 	pDC->Ellipse( &rectEarth );
 
+	// colors of the sun
+	pDC->SelectObject( &penYellow );
+	pDC->SelectObject( &brYellow );
+
+	// create a rectangle representing the sun 
+	CRect rectSun = SunRectangle;
+
+	// draw the sun as an ellipse that fits into the rectangle
+	pDC->Ellipse( &rectSun );
+
 	// draw hypotenuse of triangle
 	pDC->SelectObject( &penRed );
-	pDC->MoveTo( ptMoon );
-	pDC->LineTo( ptEarth );
+	pDC->MoveTo( ptEarth );
+	pDC->LineTo( ptSun );
 
 	// draw the X vector
-	pDC->LineTo( ptMoon.x, ptEarth.y );
+	pDC->LineTo( ptEarth.x, ptSun.y );
 
 	// draw the Y vector
-	pDC->LineTo( ptMoon );
+	pDC->LineTo( ptEarth );
 
 	// restore the device context
 	pDC->RestoreDC( nDC );
@@ -614,17 +652,23 @@ void CEarthOrbitView::render
 
 /////////////////////////////////////////////////////////////////////////////
 // add the current moon position to the historical points of the lunar orbit
-void CEarthOrbitView::AddOrbitalPoint()
+void CEarthOrbitView::AddLunarPoint()
 {
-	CEarthOrbitDoc* pDoc = Document;
+	CPoint pt = MoonCenter;
 
-	CRect rectMoon = MoonRectangle;
+	m_LunarPoints.push_back( pt );
 
-	CPoint pt = rectMoon.CenterPoint();
+} // AddLunarPoint
 
-	m_OrbitPoints.push_back( pt );
+/////////////////////////////////////////////////////////////////////////////
+// add the current earth position to the historical points of the earth orbit
+void CEarthOrbitView::AddEarthPoint()
+{
+	CPoint pt = EarthCenter;
 
-} // AddOrbitalPoint
+	m_EarthPoints.push_back( pt );
+
+} // AddEarthPoint
 
 /////////////////////////////////////////////////////////////////////////////
 // this routine will update the moon's position using time slices
@@ -633,28 +677,22 @@ void CEarthOrbitView::UpdateMoonPosition()
 {
 	CEarthOrbitDoc* pDoc = Document;
 
-	// 27 days in seconds
-	const double dSeconds = 27 * 86400;
-
 	// starting positions
-	double dX = pDoc->MoonX;
-	double dY = pDoc->MoonY;
+	double dX = pDoc->LunarX;
+	double dY = pDoc->LunarY;
 
 	// starting velocity
-	double dVx = pDoc->VelocityX;
-	double dVy = pDoc->VelocityY;
+	double dVx = pDoc->LunarVelocityX;
+	double dVy = pDoc->LunarVelocityY;
 
 	// acceleration of earth's gravity on the moon
-	const double dA = pDoc->AccelerationOfGravity;
-
-	// the time the model has been run in seconds
-	double dTime = pDoc->RunningTime;
+	const double dAe = pDoc->LunarEarthGravity;
 
 	// mass of the earth in kilograms
-	const double dM = pDoc->MassOfTheEarth;
+	const double dMe = pDoc->MassOfTheEarth;
 
 	// the distance to the moon in meters
-	const double dR = MetersToMoon;
+	const double dRe = LunarDistance;
 
 	// the number of time slices the day is divided into
 	const int nSamplesPerDay = (int)pDoc->SamplesPerDay;
@@ -665,8 +703,80 @@ void CEarthOrbitView::UpdateMoonPosition()
 	// the length of a time slice in seconds
 	const double dSt = pDoc->SampleTime;
 
-	// the known lunar period in seconds
-	const double dEarthPeriod = pDoc->EarthPeriod;
+	// loop through the time slices and update positions and velocities
+	for ( int nSample = 0; nSample < nSamplesPerHour; nSample++ )
+	{
+		// the acceleration of gravity in the X direction
+		const double dAx = -dAe * dX / dRe;
+
+		// the acceleration of gravity in the Y direction
+		const double dAy = -dAe * dY / dRe;
+
+		// the new velocity in the X direction
+		const double dNewVx = dVx + dAx * dSt;
+
+		// the new velocity in the Y direction
+		const double dNewVy = dVy + dAy * dSt;
+
+		// the new X position 
+		const double dNewX = dX + dVx * dSt;
+
+		// the new Y position
+		const double dNewY = dY + dVy * dSt;
+
+		// update the current position for the next time slice
+		dVx = dNewVx;
+		dVy = dNewVy;
+		dX = dNewX;
+		dY = dNewY;
+	}
+
+	// record the final result into the document
+	pDoc->LunarX = dX;
+	pDoc->LunarY = dY;
+	pDoc->LunarVelocityX = dVx;
+	pDoc->LunarVelocityY = dVy;
+
+} // UpdateMoonPosition
+
+/////////////////////////////////////////////////////////////////////////////
+// this routine will update the earth's position using time slices
+// equal to SampleTime.
+void CEarthOrbitView::UpdateEarthPosition()
+{
+	CEarthOrbitDoc* pDoc = Document;
+
+	// 365 days in seconds
+	const double dSeconds = 365 * 86400;
+
+	// starting positions
+	double dX = pDoc->EarthX;
+	double dY = pDoc->EarthY;
+
+	// starting velocity
+	double dVx = pDoc->EarthVelocityX;
+	double dVy = pDoc->EarthVelocityY;
+
+	// acceleration of sun's gravity on the earth
+	const double dA = pDoc->EarthSolarGravity;
+
+	// the time the model has been run in seconds
+	double dTime = pDoc->RunningTime;
+
+	// mass of the earth in kilograms
+	const double dM = pDoc->MassOfTheEarth;
+
+	// the distance to the sun in meters
+	const double dR = pDoc->EarthDistance;
+
+	// the number of time slices the day is divided into
+	const int nSamplesPerDay = (int)pDoc->SamplesPerDay;
+
+	// samples per hour
+	const int nSamplesPerHour = nSamplesPerDay / 24;
+
+	// the length of a time slice in seconds
+	const double dSt = pDoc->SampleTime;
 
 	// are we done with a complete cycle
 	bool bDone = false;
@@ -696,7 +806,7 @@ void CEarthOrbitView::UpdateMoonPosition()
 		const bool bSingleOrbit = SingleOrbit;
 
 		// if we are doing a single orbit and we have
-		// exceeded 27 days, start testing for the end
+		// exceeded 365 days, start testing for the end
 		// of the orbit
 		if ( bSingleOrbit && dTime > dSeconds )
 		{
@@ -705,7 +815,9 @@ void CEarthOrbitView::UpdateMoonPosition()
 
 			// if the delta is negative, we have reached the beginning
 			// of the orbit
-			if ( dDelta < 0 )
+			const bool bDelta = dDelta < 0;
+			const bool bZeroY = NearlyEqual( dNewY, 0.0 );
+			if ( bDelta || bZeroY )
 			{
 				KillTimer( 1 );
 				Running = false;
@@ -725,14 +837,18 @@ void CEarthOrbitView::UpdateMoonPosition()
 	}
 
 	// record the final result into the document
-	pDoc->MoonX = dX;
-	pDoc->MoonY = dY;
-	pDoc->VelocityX = dVx;
-	pDoc->VelocityY = dVy;
+	pDoc->EarthX = dX;
+	pDoc->EarthY = dY;
+	pDoc->EarthVelocityX = dVx;
+	pDoc->EarthVelocityY = dVy;
 	pDoc->RunningTime = dTime;
 
 	// keep track of orbital points
-	AddOrbitalPoint();
+	if ( NearlyEqual( fmod( dTime, 3600 ), 0.0 ))
+	{
+		AddEarthPoint();
+		AddLunarPoint();
+	}
 
 	// if we are done, repaint the view
 	if ( bDone )
@@ -740,7 +856,7 @@ void CEarthOrbitView::UpdateMoonPosition()
 		Invalidate();
 	}
 
-} // UpdateMoonPosition
+} // UpdateEarthPosition
 
 /////////////////////////////////////////////////////////////////////////////
 BOOL CEarthOrbitView::OnEraseBkgnd( CDC* pDC )
@@ -835,6 +951,9 @@ void CEarthOrbitView::OnVScroll( UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 /////////////////////////////////////////////////////////////////////////////
 void CEarthOrbitView::OnTimer( UINT_PTR nIDEvent )
 {
+	// update the earth's position and velocity
+	UpdateEarthPosition();
+
 	// update the moon's position and velocity
 	UpdateMoonPosition();
 
@@ -882,7 +1001,7 @@ void CEarthOrbitView::OnEditRun()
 	}
 	else // paused
 	{
-		SetTimer( 1, 10, nullptr );
+		SetTimer( 1, 1, nullptr );
 		Running = true;
 	}
 
