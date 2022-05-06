@@ -22,6 +22,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 CEarthOrbitDoc::CEarthOrbitDoc()
 {
+	MassOfTheEarth = 5.983e24; // kg
 	LunarAngleInDegrees = -90;
 	LunarVelocity = -1022; // meters per second
 	LunarVelocityX = 0; // meters per second
@@ -32,6 +33,12 @@ CEarthOrbitDoc::CEarthOrbitDoc()
 	LunarX = LunarDistance; // meters from earth's x axis
 	LunarY = 0; // meters from earth's y axis
 	
+	// acceleration of gravity on the moon from the earth
+	const double dLunarA = LunarEarthGravity;
+	LunarAx = dLunarA; // lunar X vector acceleration m/s^2
+	LunarAy = 0; // lunar Y vector acceleration m/s^2
+
+	MassOfTheSun = 1.988e30; // kg
 	EarthAngleInDegrees = -90;
 	EarthVelocity = -29780; // meters per second
 	EarthVelocityX = 0; // meters per second
@@ -41,11 +48,14 @@ CEarthOrbitDoc::CEarthOrbitDoc()
 	EarthX = EarthDistance; // meters from sun's x axis
 	EarthY = 0; // meters from sun's y axis
 	
+	// acceleration of gravity on the earth from the sun
+	const double dEarthA = EarthSolarGravity;
+	EarthAx = dEarthA; // earth X vector acceleration m/s^2
+	EarthAy = 0; // earth Y vector acceleration m/s^2
+
 	SampleTime = 1; // seconds
 	const double dSamplesPerDay = SamplesPerDay;
 	RunningTime = 0; // seconds
-	MassOfTheEarth = 5.983e24; // kg
-	MassOfTheSun = 1.988e30; // kg
 }
 
 /////////////////////////////////////////////////////////////////////////////

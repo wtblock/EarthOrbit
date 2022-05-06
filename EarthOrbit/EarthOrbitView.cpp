@@ -385,81 +385,71 @@ void CEarthOrbitView::BuildFont
 } // BuildFont
 
 /////////////////////////////////////////////////////////////////////////////
-// render the page or view
-void CEarthOrbitView::render
-(
-	CDC* pDC, double dTopOfView, double dBottomOfView, int nLogicalWidth
-)
+// render the earth orbit 
+void CEarthOrbitView::RenderEarthOrbit( CDC * pDC )
 {
-	CEarthOrbitDoc* pDoc = Document;
-	const UINT nPages = pDoc->Pages;
-	double dTopOfPage = 0;
-
-	// create a pen to draw with
-	CPen penGray, penGreen, penRed, penBlue, penYellow;
-
-	// save the entry state
-	const int nDC = pDC->SaveDC();
-
-	// 1 hundredths of an inch
-	const int nGrayWidth = InchesToLogical( 0.01 );
-
 	// 2 hundredths of an inch
 	const int nGreenWidth = InchesToLogical( 0.02 );
 
-	// 2 hundredths of an inch
-	const int nRedWidth = InchesToLogical( 0.02 );
+	// green color
+	const COLORREF rgbGreen = RGB( 0, 128, 0 );
 
-	// 5 hundredth of an inch
-	const int nBlueWidth = InchesToLogical( 0.05 );
+	// create a solid gray pen 0.05 inches wide
+	CPen penGreen;
+	penGreen.CreatePen( PS_SOLID, nGreenWidth, rgbGreen );
 
-	// 0.12 inch size
-	const int nTextHeight = InchesToLogical( 0.18 );
+	CPen* pOld = pDC->SelectObject( &penGreen );
+
+	// draw historical earth orbital path
+	const size_t nPoints = m_EarthPoints.size();
+	if ( nPoints != 0 )
+	{
+		pDC->Polyline( &m_EarthPoints[ 0 ], (int)nPoints );
+	}
+
+	pDC->SelectObject( pOld );
+
+} // RenderEarthOrbit
+
+  /////////////////////////////////////////////////////////////////////////////
+// render the lunar orbit 
+void CEarthOrbitView::RenderLunarOrbit( CDC * pDC )
+{
+	// 1 hundredths of an inch
+	const int nGrayWidth = InchesToLogical( 0.01 );
 
 	// gray color
 	const COLORREF rgbGray = RGB( 128, 128, 128 );
 
-	// red color
-	const COLORREF rgbRed = RGB( 255, 0, 0 );
-
-	// green color
-	const COLORREF rgbGreen = RGB( 0, 255, 0 );
-
-	// blue color
-	const COLORREF rgbBlue = RGB( 0, 0, 255 );
-
-	// yellow color
-	const COLORREF rgbYellow = RGB( 255, 255, 0 );
-
 	// create a solid gray pen 0.05 inches wide
+	CPen penGray;
 	penGray.CreatePen( PS_SOLID, nGrayWidth, rgbGray );
 
-	// create a solid gray pen 0.02 inches wide
-	penGreen.CreatePen( PS_SOLID, nGreenWidth, rgbGreen );
+	CPen* pOld = pDC->SelectObject( &penGray );
 
-	// create a solid blue pen 0.05 inches wide
-	penBlue.CreatePen( PS_SOLID, nBlueWidth, rgbBlue );
+	// draw historical moon images and orbital path
+	const size_t nPoints = m_LunarPoints.size();
+	if ( nPoints != 0 )
+	{
+		pDC->Polyline( &m_LunarPoints[ 0 ], (int)nPoints );
+	}
 
-	// create a solid red pen 0.02 inches wide
-	penRed.CreatePen( PS_SOLID, nRedWidth, rgbRed );
+	pDC->SelectObject( pOld );
 
-	// create a solid yellow pen 0.02 inches wide
-	penYellow.CreatePen( PS_SOLID, nRedWidth, rgbYellow );
+} // RenderLunarOrbit
 
-	// create a green and gray brush
-	CBrush brGreen, brGray, brYellow;
+/////////////////////////////////////////////////////////////////////////////
+// render the equations of motion
+void CEarthOrbitView::RenderEquations( CDC * pDC )
+{
+	// margin around the document in logical pixels (device independent)
+	const int nMargin = LogicalDocumentMargin;
 
-	// create a green brush
-	brGreen.CreateSolidBrush( rgbGreen );
+	// text color is blue
+	COLORREF rgbBlue( RGB( 0, 0, 255 ) );
 
-	// create a gray brush
-	brGray.CreateSolidBrush( rgbGray );
-
-	// create a gray brush
-	brYellow.CreateSolidBrush( rgbYellow );
-
-	CBrush brNull;
-	brNull.CreateStockObject( NULL_BRUSH );
+	// 0.12 inch size
+	const int nTextHeight = InchesToLogical( 0.25 );
 
 	// create a font for text output
 	CFont font;
@@ -468,129 +458,187 @@ void CEarthOrbitView::render
 		_T( "Arial" ), false, false, nTextHeight, false, font
 	);
 
-	// setting labels
-	CString csEarthAngle, csEarthVelocity, csEarthVelocityX, csEarthVelocityY,
-		csDistance, csEarthX, csEarthY,
-		csSample, csSamplesPerDay, csRunningTime;
-	csEarthVelocity.Format
+	// labels for information to be displayed on the output device
+	CString csText
 	(
-		_T( "Initial velocity in meters per second: %0.0f" ), EarthVelocity
+		_T( "Newton's first equation of motion:\n \n" )
+		_T( "    v = u + at\n \n" )
+		_T( "Newton's second equation of motion:\n \n" )
+		_T( "    s = ut + ½at²\n \n" )
+		_T( "where v is final velocity, u is initial velocity,\n" )
+		_T( "    s is final position, a is acceleration, and t is time." )
 	);
-	csEarthVelocityX.Format
+
+	// prepare the device context
+	CFont* pOldFont = pDC->SelectObject( &font );
+	const int nTA = pDC->SetTextAlign( TA_LEFT | TA_BASELINE );
+	COLORREF rgbOld = pDC->SetTextColor( rgbBlue );
+
+	// document dimensions
+	const int nDocWidth = InchesToLogical( DocumentWidth );
+	const int nDocHeight = InchesToLogical( DocumentHeight );
+
+	// left justified to the left margin
+	int nX = 2 * nMargin;
+	int nY = 2 * nMargin;
+
+	const CString csDelim( _T( "\n" ) );
+	int nStart = 0;
+
+	// tokenize the string using line feeds as delimiters
+	// and exit when the token is empty
+	do
+	{
+		const CString csToken = csText.Tokenize( csDelim, nStart );
+		if ( csToken.IsEmpty() )
+		{
+			break;
+		}
+
+		// draw the equation text one line at a time
+		pDC->TextOut( nX, nY, csToken );
+
+		// move to next line
+		nY += nTextHeight;
+
+	} while ( true );
+ 
+	// restore the device context
+	pDC->SetTextColor( rgbOld );
+	pDC->SetTextAlign( nTA );
+	pDC->SelectObject( pOldFont );
+
+} // RenderEquations
+
+/////////////////////////////////////////////////////////////////////////////
+// render the text information
+void CEarthOrbitView::RenderText( CDC * pDC )
+{
+	// pointer to the document information
+	CEarthOrbitDoc* pDoc = Document;
+
+	// margin around the document in logical pixels (device independent)
+	const int nMargin = LogicalDocumentMargin;
+
+	// 0.12 inch size
+	const int nTextHeight = InchesToLogical( 0.25 );
+
+	// text color
+	COLORREF rgbText( RGB( 0, 128, 0 ) );
+
+	// create a font for text output
+	CFont font;
+	BuildFont
 	(
-		_T( "X-velocity in meters per second: %0.0f" ),
+		_T( "Arial" ), false, false, nTextHeight, false, font
+	);
+
+	// labels for information to be displayed on the output device
+	CString
+		csMassOfSun,
+		csGravity, csGravityX, csGravityY,
+		csVelocity, csVelocityX, csVelocityY,
+		csDistance, csMoonX, csMoonY,
+		csSample, csSamplesPerDay, csRunningTime, csAngle;
+
+	csMassOfSun.Format
+	(
+		_T( "Mass of the sun in kg: %g" ),
+		pDoc->MassOfTheSun
+	);
+	csGravity.Format
+	(
+		_T( "Gravity in m/s^2: %g" ),
+		pDoc->EarthSolarGravity
+	);
+	csGravityX.Format
+	(
+		_T( "X-gravity in m/s^2: %g" ),
+		pDoc->EarthAx
+	);
+	csGravityY.Format
+	(
+		_T( "Y-gravity in m/s^2: %g" ),
+		pDoc->EarthAy
+	);
+	csVelocity.Format
+	(
+		_T( "Initial velocity in m/s: %0.0f" ), EarthVelocity
+	);
+	csVelocityX.Format
+	(
+		_T( "X-velocity in m/s: %0.0f" ),
 		HorizontalEarthVelocity
 	);
-	csEarthVelocityY.Format
+	csVelocityY.Format
 	(
-		_T( "Y-velocity in meters per second: %0.0f" ),
+		_T( "Y-velocity in m/s: %0.0f" ),
 		VerticalEarthVelocity
 	);
 	csDistance.Format
 	(
-		_T( "Distance to sun in meters: %0.0f" ), EarthDistance
+		_T( "Distance to sun in m: %0.0f" ), EarthDistance
 	);
-	csEarthX.Format
+	csMoonX.Format
 	(
-		_T( "X Distance to sun in meters: %0.0f" ), pDoc->EarthX
+		_T( "X Distance to sun in m: %0.0f" ), pDoc->EarthX
 	);
-	csEarthY.Format
+	csMoonY.Format
 	(
-		_T( "Y Distance to sun in meters: %0.0f" ), pDoc->EarthY
+		_T( "Y Distance to sun in m: %0.0f" ), pDoc->EarthY
 	);
-	csEarthAngle.Format( _T( "Earth Angle in degrees: %0.02f" ), EarthAngleInDegrees );
+	csAngle.Format( _T( "Angle in deg: %0.02f" ), EarthAngleInDegrees );
 	csSample.Format
 	(
-		_T( "Time between samples in seconds: %0.0f" ), SampleTime
+		_T( "Time between samples in s: %0.0f" ), SampleTime
 	);
 	csSamplesPerDay.Format
 	(
 		_T( "Samples per day: %0.0f" ), pDoc->SamplesPerDay
 	);
+
+	// running time is in seconds, so divide by the number of seconds in a day
+	// to display the running time in days
 	csRunningTime.Format
 	(
 		_T( "Running time in days: %0.01f" ), pDoc->RunningTime / 86400
 	);
 
-	const double dPageHeight = PageHeight;
-	const double dBottomOfPage = dTopOfPage + dPageHeight;
+	// prepare the device context
+	CFont* pOldFont = pDC->SelectObject( &font );
+	const int nTA = pDC->SetTextAlign( TA_RIGHT | TA_BASELINE );
+	COLORREF rgbOld = pDC->SetTextColor( rgbText );
 
-	// distance from top of view to top of page, where a positive value
-	// indicates the page is partially below the view
-	const double dPageOffset = dTopOfPage - dTopOfView;
-	const int nPageOffset = InchesToLogical( dPageOffset );
-	const int nLogicalPageHeight = InchesToLogical( dPageHeight );
-
-	// account for the shift of the view due to scrolling or printed pages
-	pDC->SetWindowOrg( 0, -nPageOffset );
-
-	// green line for the earth orbit
-	pDC->SelectObject( &penGreen );
-
-	// draw historical moon images and orbital path
-	size_t nPoints = m_EarthPoints.size();
-	if ( nPoints != 0 )
-	{
-		pDC->Polyline( &m_EarthPoints[ 0 ], (int)nPoints );
-	}
-
-	// gray line for the axes and lunar orbit
-	pDC->SelectObject( &penGray );
-
-	// draw historical moon images and orbital path
-	nPoints = m_LunarPoints.size();
-	if ( nPoints != 0 )
-	{
-		pDC->Polyline( &m_LunarPoints[ 0 ], (int)nPoints );
-	}
-
-	// draw settings information
-	pDC->SelectObject( &font );
-	pDC->SetTextAlign( TA_RIGHT | TA_BASELINE );
-
-	const int nMargin = LogicalDocumentMargin;
-
-	// draw the X and Y axes
+	// document dimensions
 	const int nDocWidth = InchesToLogical( DocumentWidth );
 	const int nDocHeight = InchesToLogical( DocumentHeight );
-	CPoint ptSun = SunCenter;
-	int nX1 = ptSun.x - nMargin * 20;
-	int nY1 = ptSun.y - nMargin * 16;
-	int nX2 = ptSun.x + nMargin * 20;
-	int nY2 = ptSun.y + nMargin * 16;
-	for ( int nX = nX1; nX <= nX2; nX += 4 * nMargin )
-	{
-		pDC->MoveTo( nX, nY1 );
-		pDC->LineTo( nX, nY2 );
-	}
-	for ( int nY = nY1; nY <= nY2; nY += 4 * nMargin )
-	{
-		pDC->MoveTo( nX1, nY );
-		pDC->LineTo( nX2, nY );
-	}
-
-	pDC->TextOut( nMargin, ptSun.y, _T( "X" ) );
-	pDC->TextOut( nDocWidth - nMargin, ptSun.y, _T( "X" ) );
-	pDC->TextOut( ptSun.x, nMargin, _T( "Y" ) );
-	pDC->TextOut( ptSun.x, nTextHeight + nDocHeight - nMargin, _T( "Y" ) );
 
 	// right justified to the right margin
 	int nX = LogicalDocumentWidth - 2 * nMargin;
 	int nY = 2 * nMargin;
 
+	// draw the textual information one line at a time
+	pDC->TextOut( nX, nY, csMassOfSun );
+	nY += nTextHeight;
 	pDC->TextOut( nX, nY, csDistance );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthX );
+	pDC->TextOut( nX, nY, csMoonX );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthY );
+	pDC->TextOut( nX, nY, csMoonY );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthVelocity );
+	pDC->TextOut( nX, nY, csVelocity );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthVelocityX );
+	pDC->TextOut( nX, nY, csVelocityX );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthVelocityY );
+	pDC->TextOut( nX, nY, csVelocityY );
 	nY += nTextHeight;
-	pDC->TextOut( nX, nY, csEarthAngle );
+	pDC->TextOut( nX, nY, csGravity );
+	nY += nTextHeight;
+	pDC->TextOut( nX, nY, csGravityX );
+	nY += nTextHeight;
+	pDC->TextOut( nX, nY, csGravityY );
+	nY += nTextHeight;
+	pDC->TextOut( nX, nY, csAngle );
 	nY += nTextHeight;
 	pDC->TextOut( nX, nY, csSample );
 	nY += nTextHeight;
@@ -599,24 +647,226 @@ void CEarthOrbitView::render
 	pDC->TextOut( nX, nY, csRunningTime );
 	nY += nTextHeight;
 
+	// labels beside the grid
+	COLORREF rgbScale( RGB( 255, 0, 0 ) );
+	const CString csLabelX( _T( "X (Inches)" ) );
+	const CString csLabelY( _T( "Y (Inches)" ) );
+
+	// center of the sun on the document
+	CPoint ptSun = SunCenter;
+
+	pDC->SetTextColor( rgbScale );
+	pDC->SetTextAlign( TA_CENTER | TA_BOTTOM );
+	pDC->TextOut( ptSun.x, nMargin, csLabelX );
+	pDC->TextOut( ptSun.x, nDocHeight - nMargin, csLabelX );
+
+	// create a font for vertical text output
+	CFont fontY;
+	BuildFont
+	(
+		_T( "Arial" ), false, false, nTextHeight, true, fontY
+	);
+	pDC->SelectObject( &fontY );
+	pDC->SetTextAlign( TA_CENTER | TA_BOTTOM );
+
+	pDC->TextOut( nMargin - nTextHeight, ptSun.y, csLabelY );
+	pDC->TextOut( nDocWidth - nMargin, ptSun.y, csLabelY );
+
+	// restore the device context
+	pDC->SetTextColor( rgbOld );
+	pDC->SetTextAlign( nTA );
+	pDC->SelectObject( pOldFont );
+
+} // RenderText
+
+/////////////////////////////////////////////////////////////////////////////
+// render the grid
+void CEarthOrbitView::RenderGrid( CDC * pDC )
+{
+	// gray color
+	const COLORREF rgbGray = RGB( 128, 128, 128 );
+
+	// 1 hundredths of an inch
+	const int nGrayWidth = InchesToLogical( 0.01 );
+
+	// gray pen
+	CPen penGray;
+
+	// create a solid gray pen 0.05 inches wide
+	penGray.CreatePen( PS_SOLID, nGrayWidth, rgbGray );
+
+	// setup the device context
+	CPen* pOld = pDC->SelectObject( &penGray );
+
+	// document dimensions in logical pixels (device independent)
+	const int nDocWidth = InchesToLogical( DocumentWidth );
+	const int nDocHeight = InchesToLogical( DocumentHeight );
+
+	// center point of the sun
+	CPoint ptSun = SunCenter;
+
+	// margin around the document in logical pixels (device independent)
+	// based on a 1/4" margin
+	const int nMargin = LogicalDocumentMargin;
+
+	// drawing limits
+	int nX1 = ptSun.x - nMargin * 20; // 20 margins left of center
+	int nX2 = ptSun.x + nMargin * 20; // 20 margins right of center
+	int nY1 = ptSun.y - nMargin * 16; // 16 margins above center
+	int nY2 = ptSun.y + nMargin * 16; // 16 margins below center
+
+	// draw vertical grid lines every 4 margins (every inch)
+	for ( int nX = nX1; nX <= nX2; nX += 4 * nMargin )
+	{
+		pDC->MoveTo( nX, nY1 );
+		pDC->LineTo( nX, nY2 );
+	}
+
+	// draw horizontal grid lines every 4 margins (every inch)
+	for ( int nY = nY1; nY <= nY2; nY += 4 * nMargin )
+	{
+		pDC->MoveTo( nX1, nY );
+		pDC->LineTo( nX2, nY );
+	}
+
+	// restore the device context
+	pDC->SelectObject( pOld );
+
+} // RenderGrid
+
+/////////////////////////////////////////////////////////////////////////////
+// render the scale labels in inches
+void CEarthOrbitView::RenderScale( CDC * pDC )
+{
+	// margin around the document in logical pixels (device independent)
+	const int nMargin = LogicalDocumentMargin;
+
+	// text color
+	COLORREF rgbText( RGB( 255, 0, 0 ) );
+
+	// 0.12 inch size
+	const int nTextHeight = InchesToLogical( 0.18 );
+
+	// create a font for text output
+	CFont font;
+	BuildFont
+	(
+		_T( "Arial" ), false, false, nTextHeight, false, font
+	);
+
+	// center of the sun on the document
+	CPoint ptSun = SunCenter;
+
+	// drawing limits
+	int nX1 = ptSun.x - nMargin * 20; // 20 margins left of center
+	int nX2 = ptSun.x + nMargin * 20; // 20 margins right of center
+	int nY1 = ptSun.y - nMargin * 16; // 16 margins above center
+	int nY2 = ptSun.y + nMargin * 16; // 16 margins below center
+
+	// draw X scale labels every 4 margins (every inch)
+	// prepare the device context
+	CFont* pOldFont = pDC->SelectObject( &font );
+	const int nTA = pDC->SetTextAlign( TA_CENTER | TA_TOP );
+	COLORREF rgbOld = pDC->SetTextColor( rgbText );
+
+	CString csValue;
+	for ( int nX = nX1; nX <= nX2; nX += 4 * nMargin )
+	{
+		const double dValue = LogicalToInches( nX - 2 * nMargin );
+		csValue.Format( _T( "%0.0f" ), dValue );
+		pDC->TextOut( nX, nY2, csValue );
+	}
+
+	// draw Y scale labels every 4 margins (every inch)
+	// create a font for vertical text output
+	CFont fontY;
+	BuildFont
+	(
+		_T( "Arial" ), false, false, nTextHeight, true, fontY
+	);
+	pDC->SelectObject( &fontY );
+	pDC->SetTextAlign( TA_CENTER | TA_TOP );
+	for ( int nY = nY1; nY <= nY2; nY += 4 * nMargin )
+	{
+		const double dValue = LogicalToInches( nY - nMargin );
+		csValue.Format( _T( "%0.0f" ), dValue );
+		pDC->TextOut( nX1, nY, csValue );
+	}
+
+	// restore the device context
+	pDC->SetTextColor( rgbOld );
+	pDC->SetTextAlign( nTA );
+	pDC->SelectObject( pOldFont );
+
+} // RenderScale
+
+/////////////////////////////////////////////////////////////////////////////
+// render the moon
+void CEarthOrbitView::RenderMoon( CDC * pDC )
+{
+	// gray color
+	const COLORREF rgbGray = RGB( 128, 128, 128 );
+
+	// 1 hundredths of an inch
+	const int nGrayWidth = InchesToLogical( 0.01 );
+
+	// gray pen to draw the moon's circumference
+	CPen penGray;
+
+	// create a solid gray pen 0.05 inches wide
+	penGray.CreatePen( PS_SOLID, nGrayWidth, rgbGray );
+
+	// setup the device context
+	CPen* pPenOld = pDC->SelectObject( &penGray );
+
+	// a gray brush to fill the moon's interior
+	CBrush brGray;
+
+	// create a gray brush
+	brGray.CreateSolidBrush( rgbGray );
+
 	// color the moon gray
-	pDC->SelectObject( &brGray );
+	CBrush* pBrOld = pDC->SelectObject( &brGray );
 
 	// create a rectangle representing the moon 
 	CRect rectMoon = MoonRectangle;
 
-	// center point of the moon
-	CPoint ptEarth = EarthCenter;
-
-	// center point of the moon
-	CPoint ptMoon = MoonCenter;
-
 	// draw the moon as an ellipse that fits into the rectangle
 	pDC->Ellipse( &rectMoon );
 
+	// restore the device context
+	pDC->SelectObject( pPenOld );
+	pDC->SelectObject( pBrOld );
+
+} // RenderMoon
+
+/////////////////////////////////////////////////////////////////////////////
+void CEarthOrbitView::RenderEarth( CDC * pDC )
+{
+	// 5 hundredth of an inch
+	const int nBlueWidth = InchesToLogical( 0.05 );
+
+	// green color
+	const COLORREF rgbGreen = RGB( 0, 255, 0 );
+
+	// blue color
+	const COLORREF rgbBlue = RGB( 0, 0, 255 );
+
+	// create a pen to draw the earth's circumference 
+	CPen penBlue;
+
+	// create a solid blue pen 0.05 inches wide
+	penBlue.CreatePen( PS_SOLID, nBlueWidth, rgbBlue );
+
+	// create a green brush to fill the earth's shape
+	CBrush brGreen;
+
+	// create a green brush
+	brGreen.CreateSolidBrush( rgbGreen );
+
 	// colors of the earth
-	pDC->SelectObject( &penBlue );
-	pDC->SelectObject( &brGreen );
+	CPen* pPenOld = pDC->SelectObject( &penBlue );
+	CBrush* pBrOld = pDC->SelectObject( &brGreen );
 
 	// create a rectangle representing the earth 
 	CRect rectEarth = EarthRectangle;
@@ -624,18 +874,78 @@ void CEarthOrbitView::render
 	// draw the earth as an ellipse that fits into the rectangle
 	pDC->Ellipse( &rectEarth );
 
-	// colors of the sun
-	pDC->SelectObject( &penYellow );
-	pDC->SelectObject( &brYellow );
+	// restore the device context
+	pDC->SelectObject( pPenOld );
+	pDC->SelectObject( pBrOld );
+
+} // RenderEarth
+
+/////////////////////////////////////////////////////////////////////////////
+void CEarthOrbitView::RenderSun( CDC * pDC )
+{
+	// 1 hundredth of an inch
+	const int nWidth = InchesToLogical( 0.01 );
+
+	// yellow color
+	const COLORREF rgb = RGB( 255, 255, 0 );
+
+	// create a pen to draw the earth's circumference 
+	CPen pen;
+
+	// create a solid blue pen 0.05 inches wide
+	pen.CreatePen( PS_SOLID, nWidth, rgb );
+
+	// create a green brush to fill the earth's shape
+	CBrush br;
+
+	// create a green brush
+	br.CreateSolidBrush( rgb );
+
+	// color of the sun
+	CPen* pPenOld = pDC->SelectObject( &pen );
+	CBrush* pBrOld = pDC->SelectObject( &br );
 
 	// create a rectangle representing the sun 
-	CRect rectSun = SunRectangle;
+	CRect rect = SunRectangle;
 
 	// draw the sun as an ellipse that fits into the rectangle
-	pDC->Ellipse( &rectSun );
+	pDC->Ellipse( &rect );
 
-	// draw hypotenuse of triangle
-	pDC->SelectObject( &penRed );
+	// restore the device context
+	pDC->SelectObject( pPenOld );
+	pDC->SelectObject( pBrOld );
+
+} // RenderSun
+
+/////////////////////////////////////////////////////////////////////////////
+// render the sun / earth triangle - the sun's acceleration is 
+// applied toward's the earth along the triangle's hypotenuse, but
+// in order to calculate velocity and position of the earth that 
+// gravitational attraction needs to be broken into a vertical and
+// horizontal vector represented by the sides of the right triangle
+void CEarthOrbitView::RenderTriangle( CDC* pDC )
+{
+	// 2 hundredths of an inch
+	const int nRedWidth = InchesToLogical( 0.02 );
+
+	// red color
+	const COLORREF rgbRed = RGB( 255, 0, 0 );
+
+	// create a pen to draw with
+	CPen penRed;
+
+	// create a solid red pen 0.02 inches wide
+	penRed.CreatePen( PS_SOLID, nRedWidth, rgbRed );
+
+	CPen* pPenOld = pDC->SelectObject( &penRed );
+
+	// center point of the sun
+	CPoint ptSun = SunCenter;
+
+	// center point of the earth
+	CPoint ptEarth = EarthCenter;
+
+	// draw the hypotenuse of the right triangle (radius of orbit)
 	pDC->MoveTo( ptEarth );
 	pDC->LineTo( ptSun );
 
@@ -646,7 +956,65 @@ void CEarthOrbitView::render
 	pDC->LineTo( ptEarth );
 
 	// restore the device context
-	pDC->RestoreDC( nDC );
+	pDC->SelectObject( pPenOld );
+
+} // RenderTriangle
+
+/////////////////////////////////////////////////////////////////////////////
+// render the page or view
+void CEarthOrbitView::render
+(
+	CDC* pDC, double dTopOfView, double dBottomOfView, int nLogicalWidth
+)
+{
+	CEarthOrbitDoc* pDoc = Document;
+	double dTopOfPage = 0;
+
+	const double dPageHeight = PageHeight;
+	const double dBottomOfPage = dTopOfPage + dPageHeight;
+
+	// distance from top of view to top of page, where a positive value
+	// indicates the page is partially below the view
+	const double dPageOffset = dTopOfPage - dTopOfView;
+
+	// logical coordinates allow the drawing to be device independent
+	// i.e. rendering works on the screen as well as printing and print
+	// preview
+	const int nPageOffset = InchesToLogical( dPageOffset );
+	const int nLogicalPageHeight = InchesToLogical( dPageHeight );
+
+	// account for the shift of the view due to scrolling or printed pages
+	pDC->SetWindowOrg( 0, -nPageOffset );
+
+	// render the lunar orbit
+	RenderLunarOrbit( pDC );
+
+	// render the earth orbit
+	RenderEarthOrbit( pDC );
+
+	// render the equations of motion
+	RenderEquations( pDC );
+
+	// render text information 
+	RenderText( pDC );
+
+	// render the grid
+	RenderGrid( pDC );
+
+	// draw the scales on the grid in inches
+	RenderScale( pDC );
+
+	// draw the moon
+	RenderMoon( pDC );
+
+	// draw the earth
+	RenderEarth( pDC );
+
+	// draw the sun
+	RenderSun( pDC );
+
+	// draw the earth moon triangle 
+	RenderTriangle( pDC );
 
 } // render
 
@@ -685,7 +1053,8 @@ void CEarthOrbitView::UpdateMoonPosition()
 	double dVx = pDoc->LunarVelocityX;
 	double dVy = pDoc->LunarVelocityY;
 
-	// acceleration of earth's gravity on the moon
+	// acceleration of earth's gravity on the moon is
+	// calculated using Newton's equation
 	const double dAe = pDoc->LunarEarthGravity;
 
 	// mass of the earth in kilograms
@@ -704,24 +1073,31 @@ void CEarthOrbitView::UpdateMoonPosition()
 	const double dSt = pDoc->SampleTime;
 
 	// loop through the time slices and update positions and velocities
+	// using Newton's equations of motion
 	for ( int nSample = 0; nSample < nSamplesPerHour; nSample++ )
 	{
-		// the acceleration of gravity in the X direction
+		// the acceleration of gravity in the X direction using 
+		// right triangle proportion
 		const double dAx = -dAe * dX / dRe;
 
-		// the acceleration of gravity in the Y direction
+		// the acceleration of gravity in the Y direction using 
+		// right triangle proportion
 		const double dAy = -dAe * dY / dRe;
 
-		// the new velocity in the X direction
+		// the new X velocity in the X direction is the original X velocity
+		// plus X acceleration multiplied by the time increment
 		const double dNewVx = dVx + dAx * dSt;
 
-		// the new velocity in the Y direction
+		// the new Y velocity in the Y direction is the original Y velocity
+		// plus Y acceleration multiplied by the time increment
 		const double dNewVy = dVy + dAy * dSt;
 
-		// the new X position 
+		// the new X position is the original X position plus the X velocity
+		// multiplied by the time increment
 		const double dNewX = dX + dVx * dSt;
 
-		// the new Y position
+		// the new Y position is the original Y position plus the Y velocity
+		// multiplied by the time increment
 		const double dNewY = dY + dVy * dSt;
 
 		// update the current position for the next time slice
@@ -746,8 +1122,8 @@ void CEarthOrbitView::UpdateEarthPosition()
 {
 	CEarthOrbitDoc* pDoc = Document;
 
-	// 365 days in seconds
-	const double dSeconds = 365 * 86400;
+	// 364 days in seconds
+	const double dSeconds = 364 * 86400;
 
 	// starting positions
 	double dX = pDoc->EarthX;
@@ -759,6 +1135,10 @@ void CEarthOrbitView::UpdateEarthPosition()
 
 	// acceleration of sun's gravity on the earth
 	const double dA = pDoc->EarthSolarGravity;
+
+	// starting acceleration of gravity
+	double dAx = pDoc->EarthAx;
+	double dAy = pDoc->EarthAy;
 
 	// the time the model has been run in seconds
 	double dTime = pDoc->RunningTime;
@@ -784,30 +1164,37 @@ void CEarthOrbitView::UpdateEarthPosition()
 	// loop through the time slices and update positions and velocities
 	for ( int nSample = 0; nSample < nSamplesPerHour; nSample++ )
 	{
-		// the acceleration of gravity in the X direction
-		const double dAx = -dA * dX / dR;
+		// the acceleration of gravity in the X direction using 
+		// right triangle proportion
+		const double dNewAx = -dA * dX / dR;
 
-		// the acceleration of gravity in the Y direction
-		const double dAy = -dA * dY / dR;
+		// the acceleration of gravity in the Y direction using 
+		// right triangle proportion
+		const double dNewAy = -dA * dY / dR;
 
-		// the new velocity in the X direction
+		// the new X velocity in the X direction is the original X velocity
+		// plus X acceleration multiplied by the time increment
 		const double dNewVx = dVx + dAx * dSt;
 
-		// the new velocity in the Y direction
+		// the new Y velocity in the Y direction is the original Y velocity
+		// plus Y acceleration multiplied by the time increment
 		const double dNewVy = dVy + dAy * dSt;
 
-		// the new X position 
+		// the new X position is the original X position plus the X velocity
+		// multiplied by the time increment
 		const double dNewX = dX + dVx * dSt;
 
-		// the new Y position
+		// the new Y position is the original Y position plus the Y velocity
+		// multiplied by the time increment
 		const double dNewY = dY + dVy * dSt;
 
 		// are we doing a single orbit?
 		const bool bSingleOrbit = SingleOrbit;
 
 		// if we are doing a single orbit and we have
-		// exceeded 365 days, start testing for the end
-		// of the orbit
+		// exceeded 364 days, start testing for the end
+		// of the orbit (so the testing only is done when
+		// we are close to the expected result)
 		if ( bSingleOrbit && dTime > dSeconds )
 		{
 			// difference between the previous X and the new one
@@ -816,8 +1203,7 @@ void CEarthOrbitView::UpdateEarthPosition()
 			// if the delta is negative, we have reached the beginning
 			// of the orbit
 			const bool bDelta = dDelta < 0;
-			const bool bZeroY = NearlyEqual( dNewY, 0.0 );
-			if ( bDelta || bZeroY )
+			if ( bDelta )
 			{
 				KillTimer( 1 );
 				Running = false;
@@ -826,7 +1212,10 @@ void CEarthOrbitView::UpdateEarthPosition()
 			}
 		}
 
-		// update the current position for the next time slice
+		// update the current acceleration, velocity and 
+		// position for the next time slice
+		dAx = dNewAx;
+		dAy = dNewAy;
 		dVx = dNewVx;
 		dVy = dNewVy;
 		dX = dNewX;
@@ -837,14 +1226,16 @@ void CEarthOrbitView::UpdateEarthPosition()
 	}
 
 	// record the final result into the document
-	pDoc->EarthX = dX;
-	pDoc->EarthY = dY;
-	pDoc->EarthVelocityX = dVx;
-	pDoc->EarthVelocityY = dVy;
+	pDoc->EarthX = dX; // X distance
+	pDoc->EarthY = dY; // Y distance
+	pDoc->EarthVelocityX = dVx; // X velocity
+	pDoc->EarthVelocityY = dVy; // Y velocity
+	pDoc->EarthAx = dAx; // X gravity
+	pDoc->EarthAy = dAy; // Y gravity
 	pDoc->RunningTime = dTime;
 
-	// keep track of orbital points
-	if ( NearlyEqual( fmod( dTime, 3600 ), 0.0 ))
+	// keep track of orbital points and record them each day
+	if ( NearlyEqual( fmod( dTime, 86400 ), 0.0 ))
 	{
 		AddEarthPoint();
 		AddLunarPoint();

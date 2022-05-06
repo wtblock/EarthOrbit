@@ -21,7 +21,8 @@ protected: // create from serialization only
 	double m_dLunarX; // X coordinate of the moon in meters relative to earth
 	double m_dLunarY; // Y coordinate of the moon in meters relative to earth
 	double m_dLunarEarthGravity; // gravitational effect of earth on the moon
-	double m_dLunarSolarGravity; // gravitational effect of sun on the moon
+	double m_dLunarAx; // X vector of earth/lunar gravity
+	double m_dLunarAy; // Y vector of earth/lunar gravity
 
 	double m_dEarthAngle; // angle of the earth in degrees
 	double m_dEarthVelocity; // velocity in meters per second
@@ -33,6 +34,8 @@ protected: // create from serialization only
 	double m_dEarthX; // X coordinate of the earth in meters relative to sun
 	double m_dEarthY; // Y coordinate of the earth in meters relative to sun
 	double m_dEarthSolarGravity; // gravitational effect of sun on the earth
+	double m_dEarthAx; // X vector of sun/earth gravity
+	double m_dEarthAy; // Y vector of sun/earth gravity
 
 	double m_dSampleTime; // time in seconds between samples
 	double m_dSamplesPerDay; // number of samples per day
@@ -442,6 +445,34 @@ public:
 	__declspec( property( get = GetLunarEarthGravity ) )
 		double LunarEarthGravity;
 
+	// X vector of earth/lunar gravity
+	double GetLunarAx()
+	{
+		return m_dLunarAx;
+	}
+	// X vector of earth/lunar gravity
+	void SetLunarAx( double value )
+	{
+		m_dLunarAx = value;
+	}
+	// X vector of earth/lunar gravity
+	__declspec( property( get = GetLunarAx, put = SetLunarAx ) )
+		double LunarAx;
+
+	// Y vector of earth/lunar gravity
+	double GetLunarAy()
+	{
+		return m_dLunarAy;
+	}
+	// Y vector of earth/lunar gravity
+	void SetLunarAy( double value )
+	{
+		m_dLunarAy = value;
+	}
+	// Y vector of earth/lunar gravity
+	__declspec( property( get = GetLunarAy, put = SetLunarAy ) )
+		double LunarAy;
+
 	// acceleration of gravity on the earth due to the sun
 	double GetEarthSolarGravity()
 	{
@@ -460,6 +491,34 @@ public:
 	// acceleration of gravity on the earth due to the sun
 	__declspec( property( get = GetEarthSolarGravity ) )
 		double EarthSolarGravity;
+
+	// X vector of sun/earth gravity
+	double GetEarthAx()
+	{
+		return m_dEarthAx;
+	}
+	// X vector of sun/earth gravity
+	void SetEarthAx( double value )
+	{
+		m_dEarthAx = value;
+	}
+	// X vector of sun/earth gravity
+	__declspec( property( get = GetEarthAx, put = SetEarthAx ) )
+		double EarthAx;
+
+	// Y vector of sun/earth gravity
+	double GetEarthAy()
+	{
+		return m_dEarthAy;
+	}
+	// Y vector of sun/earth gravity
+	void SetEarthAy( double value )
+	{
+		m_dEarthAy = value;
+	}
+	// Y vector of sun/earth gravity
+	__declspec( property( get = GetEarthAy, put = SetEarthAy ) )
+		double EarthAy;
 
 	// time in seconds between samples
 	double GetSampleTime()

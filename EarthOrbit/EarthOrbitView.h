@@ -242,10 +242,20 @@ public:
 	// horizontal velocity in meters per second
 	double GetHorizontalLunarVelocity()
 	{
+		// earth moon angle in radians
 		const double dRadians = LunarAngleInRadians;
+
+		// the velocity towards the earth
 		const double dLunarVelocity = LunarVelocity;
-		const double dSine = sin( dRadians );
-		const double value = dLunarVelocity * dSine;
+
+		// we are interested in the vector adjacent to the
+		// angle which requires the cosine of the angle
+		const double dCosine = cos( dRadians );
+
+		// the cosine of the angle multiplied by the velocity (hypotenuse 
+		// of the triangle) yields the horizontal velocity (side adjacent
+		// to the angle)
+		const double value = dLunarVelocity * dCosine;
 		return value;
 	}
 	// horizontal velocity in meters per second
@@ -255,10 +265,21 @@ public:
 	// vertical velocity in meters per second
 	double GetVerticalLunarVelocity()
 	{
+		// earth moon angle in radians forming the triangle
+		// on the display
 		const double dRadians = LunarAngleInRadians;
+
+		// the velocity corresponds towards the earth
 		const double dLunarVelocity = LunarVelocity;
-		const double dCosine = cos( dRadians );
-		const double value = dLunarVelocity * dCosine;
+
+		// we are interested in the vector opposite of the
+		// angle which requires the sine of the angle
+		const double dSine = sin( dRadians );
+
+		// the sine of the angle multiplied by the velocity (hypotenuse 
+		// of the triangle) yields the vertical velocity (side opposite
+		// of the angle)
+		const double value = dLunarVelocity * dSine;
 		return value;
 	}
 	// vertical velocity in meters per second
@@ -268,26 +289,34 @@ public:
 	// angle in radians of the moon
 	double GetLunarAngleInRadians()
 	{
-		// create a rectangle representing the moon 
-		CRect rectMoon = MoonRectangle;
-
-		// center of the moon
-		CPoint ptMoon = rectMoon.CenterPoint();
+		// center of the moon on the screen
+		CPoint ptMoon = MoonCenter;
 
 		// triangle where the hypotenuse is the vector from the 
 		// earth to the moon
 		CPoint ptEarth = EarthCenter;
 
+		// difference between the moon's center X and the earth's center X
 		const int nX = ptMoon.x - ptEarth.x;
+
+		// same for Y except NOTE the reverse order. This is due to 
+		// our inverted coordinate system from standard Cartesian
+		// coordinates (our Y gets larger as you go down instead of
+		// getting larger when you go up) which has to be accounted
+		// for when doing trigonometry. Our logical coordinate system
+		// is setup by the SetDrawDC and SetPrintDC in order to make
+		// all drawing device independent where DC stands for device
+		// context.
 		const int nY = ptEarth.y - ptMoon.y;
 
 		// length of the hypotenuse using the Pythagorean theorem
+		// i.e. square root of the sum of the squares of the sides
 		const double dH = sqrt( double( nX * nX + nY * nY ) );
 
-		// sine of the angle is the opposite / hypotenuse 
+		// sine of the angle is the ratio of the opposite side / hypotenuse 
 		const double dSine = double( nY ) / dH;
 
-		// angle in radians
+		// angle in radians is the arc sine of the sine of the angle
 		const double value = asin( dSine );
 
 		return value;
@@ -356,10 +385,22 @@ public:
 	// horizontal velocity in meters per second
 	double GetHorizontalEarthVelocity()
 	{
+		// earth sun angle in radians forming the triangle
+		// on the display
 		const double dRadians = EarthAngleInRadians;
+
+		// the velocity corresponds to the hypotenuse of the
+		// triangle 
 		const double dEarthVelocity = EarthVelocity;
-		const double dSine = sin( dRadians );
-		const double value = dEarthVelocity * dSine;
+
+		// we are interested in the vector adjacent to the
+		// angle which requires the cosine of the angle
+		const double dCosine = cos( dRadians );
+
+		// the cosine of the angle multiplied by the velocity (hypotenuse 
+		// of the triangle) yields the horizontal velocity (side adjacent
+		// to the angle)
+		const double value = dEarthVelocity * dCosine;
 		return value;
 	}
 	// horizontal velocity in meters per second
@@ -369,10 +410,22 @@ public:
 	// vertical velocity in meters per second
 	double GetVerticalEarthVelocity()
 	{
+		// earth sun angle in radians forming the triangle
+		// on the display
 		const double dRadians = EarthAngleInRadians;
+
+		// the velocity corresponds to the hypotenuse of the
+		// triangle 
 		const double dEarthVelocity = EarthVelocity;
-		const double dCosine = cos( dRadians );
-		const double value = dEarthVelocity * dCosine;
+
+		// we are interested in the vector opposite of the
+		// angle which requires the sine of the angle
+		const double dSine = sin( dRadians );
+
+		// the sine of the angle multiplied by the velocity (hypotenuse 
+		// of the triangle) yields the vertical velocity (side opposite
+		// of the angle)
+		const double value = dEarthVelocity * dSine;
 		return value;
 	}
 	// vertical velocity in meters per second
@@ -389,16 +442,27 @@ public:
 		// sun to the earth
 		CPoint ptSun = SunCenter;
 
+		// difference between the earth's center X and the sun's center X
 		const int nX = ptEarth.x - ptSun.x;
+
+		// same for Y except NOTE the reverse order. This is due to 
+		// our inverted coordinate system from standard Cartesian
+		// coordinates (our Y gets larger as you go down instead of
+		// getting larger when you go up) which has to be accounted
+		// for when doing trigonometry. Our logical coordinate system
+		// is setup by the SetDrawDC and SetPrintDC in order to make
+		// all drawing device independent where DC stands for device
+		// context.
 		const int nY = ptSun.y - ptEarth.y;
 
 		// length of the hypotenuse using the Pythagorean theorem
 		const double dH = sqrt( double( nX * nX + nY * nY ) );
 
-		// sine of the angle is the opposite / hypotenuse 
+		// length of the hypotenuse using the Pythagorean theorem
+		// i.e. square root of the sum of the squares of the sides
 		const double dSine = double( nY ) / dH;
 
-		// angle in radians
+		// sine of the angle is the ratio of the opposite side / hypotenuse 
 		const double value = asin( dSine );
 
 		return value;
@@ -522,7 +586,7 @@ public:
 	{
 		CEarthOrbitDoc* pDoc = Document;
 
-		// build the point starting with the earth's center
+		// build the point starting with the sun's center
 		CPoint value = SunCenter;
 
 		// x and y coordinates of the earth relative to the sun
@@ -721,6 +785,40 @@ protected:
 
 	// update the position of the earth for a day
 	void UpdateEarthPosition();
+
+	// render the lunar orbit 
+	void RenderLunarOrbit( CDC* pDC );
+
+	// render the lunar orbit 
+	void RenderEarthOrbit( CDC* pDC );
+
+	// render the equations of motion
+	void RenderEquations( CDC* pDC );
+
+	// render the text information
+	void RenderText( CDC* pDC );
+
+	// render the grid
+	void RenderGrid( CDC* pDC );
+
+	// render the scale labels in inches
+	void RenderScale( CDC* pDC );
+
+	// render the moon's shape
+	void RenderMoon( CDC* pDC );
+
+	// render the earth's shape
+	void RenderEarth( CDC* pDC );
+
+	// render the sun's shape
+	void RenderSun( CDC* pDC );
+
+	// render the sun / earth triangle - the sun's acceleration is 
+	// applied toward's the earth along the triangle's hypotenuse, but
+	// in order to calculate velocity and position of the earth that 
+	// gravitational attraction needs to be broken into a vertical and
+	// horizontal vector represented by the sides of the right triangle
+	void RenderTriangle( CDC* pDC );
 
 	// render the page or view
 	void render
