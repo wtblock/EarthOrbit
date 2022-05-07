@@ -248,14 +248,13 @@ public:
 		// the velocity towards the earth
 		const double dLunarVelocity = LunarVelocity;
 
-		// we are interested in the vector adjacent to the
-		// angle which requires the cosine of the angle
-		const double dCosine = cos( dRadians );
-
-		// the cosine of the angle multiplied by the velocity (hypotenuse 
-		// of the triangle) yields the horizontal velocity (side adjacent
-		// to the angle)
-		const double value = dLunarVelocity * dCosine;
+		// the sine of the angle is used for the vector
+		// opposite of the angle and since the velocity
+		// is actually perpendicular to the hypotenuse
+		// it is appropriate here to calculate the 
+		// horizontal velocity 
+		const double dSine = sin( dRadians );
+		const double value = dLunarVelocity * dSine;
 		return value;
 	}
 	// horizontal velocity in meters per second
@@ -265,21 +264,19 @@ public:
 	// vertical velocity in meters per second
 	double GetVerticalLunarVelocity()
 	{
-		// earth moon angle in radians forming the triangle
-		// on the display
+		// earth moon angle in radians
 		const double dRadians = LunarAngleInRadians;
 
-		// the velocity corresponds towards the earth
+		// the velocity towards the earth
 		const double dLunarVelocity = LunarVelocity;
 
-		// we are interested in the vector opposite of the
-		// angle which requires the sine of the angle
-		const double dSine = sin( dRadians );
-
-		// the sine of the angle multiplied by the velocity (hypotenuse 
-		// of the triangle) yields the vertical velocity (side opposite
-		// of the angle)
-		const double value = dLunarVelocity * dSine;
+		// the cosine of the angle is used for the vector
+		// adjacent to the angle and since the velocity
+		// is actually perpendicular to the hypotenuse
+		// it is appropriate here to calculate the 
+		// vertical velocity 
+		const double dCosine = cos( dRadians );
+		const double value = dLunarVelocity * dCosine;
 		return value;
 	}
 	// vertical velocity in meters per second
@@ -393,14 +390,13 @@ public:
 		// triangle 
 		const double dEarthVelocity = EarthVelocity;
 
-		// we are interested in the vector adjacent to the
-		// angle which requires the cosine of the angle
-		const double dCosine = cos( dRadians );
-
-		// the cosine of the angle multiplied by the velocity (hypotenuse 
-		// of the triangle) yields the horizontal velocity (side adjacent
-		// to the angle)
-		const double value = dEarthVelocity * dCosine;
+		// the sine of the angle is used for the vector
+		// opposite of the angle and since the velocity
+		// is actually perpendicular to the hypotenuse
+		// it is appropriate here to calculate the 
+		// horizontal velocity 
+		const double dSine = sin( dRadians );
+		const double value = dEarthVelocity * dSine;
 		return value;
 	}
 	// horizontal velocity in meters per second
@@ -418,14 +414,13 @@ public:
 		// triangle 
 		const double dEarthVelocity = EarthVelocity;
 
-		// we are interested in the vector opposite of the
-		// angle which requires the sine of the angle
-		const double dSine = sin( dRadians );
-
-		// the sine of the angle multiplied by the velocity (hypotenuse 
-		// of the triangle) yields the vertical velocity (side opposite
-		// of the angle)
-		const double value = dEarthVelocity * dSine;
+		// the cosine of the angle is used for the vector
+		// adjacent to the angle and since the velocity
+		// is actually perpendicular to the hypotenuse
+		// it is appropriate here to calculate the 
+		// vertical velocity 
+		const double dCosine = cos( dRadians );
+		const double value = dEarthVelocity * dCosine;
 		return value;
 	}
 	// vertical velocity in meters per second
@@ -456,10 +451,10 @@ public:
 		const int nY = ptSun.y - ptEarth.y;
 
 		// length of the hypotenuse using the Pythagorean theorem
+		// i.e. square root of the sum of the squares of the sides
 		const double dH = sqrt( double( nX * nX + nY * nY ) );
 
-		// length of the hypotenuse using the Pythagorean theorem
-		// i.e. square root of the sum of the squares of the sides
+		// sine of the angle is the ratio of the opposite side / hypotenuse 
 		const double dSine = double( nY ) / dH;
 
 		// sine of the angle is the ratio of the opposite side / hypotenuse 

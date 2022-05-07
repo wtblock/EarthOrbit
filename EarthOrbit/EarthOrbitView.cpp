@@ -548,60 +548,60 @@ void CEarthOrbitView::RenderText( CDC * pDC )
 	);
 	csGravity.Format
 	(
-		_T( "Gravity in m/s^2: %g" ),
+		_T( "Gravity in m/s²: %0.5f" ),
 		pDoc->EarthSolarGravity
 	);
 	csGravityX.Format
 	(
-		_T( "X-gravity in m/s^2: %g" ),
+		_T( "X-gravity in m/s²: %0.5f" ),
 		pDoc->EarthAx
 	);
 	csGravityY.Format
 	(
-		_T( "Y-gravity in m/s^2: %g" ),
+		_T( "Y-gravity in m/s²: %0.5f" ),
 		pDoc->EarthAy
 	);
 	csVelocity.Format
 	(
-		_T( "Initial velocity in m/s: %0.0f" ), EarthVelocity
+		_T( "Initial velocity in m/s: %6.1f" ), EarthVelocity
 	);
 	csVelocityX.Format
 	(
-		_T( "X-velocity in m/s: %0.0f" ),
+		_T( "X-velocity in m/s: %6.1f" ),
 		HorizontalEarthVelocity
 	);
 	csVelocityY.Format
 	(
-		_T( "Y-velocity in m/s: %0.0f" ),
+		_T( "Y-velocity in m/s: %6.1f" ),
 		VerticalEarthVelocity
 	);
 	csDistance.Format
 	(
-		_T( "Distance to sun in m: %0.0f" ), EarthDistance
+		_T( "Distance to sun in m: %g" ), EarthDistance
 	);
 	csMoonX.Format
 	(
-		_T( "X Distance to sun in m: %0.0f" ), pDoc->EarthX
+		_T( "X Distance to sun in m: %g" ), pDoc->EarthX
 	);
 	csMoonY.Format
 	(
-		_T( "Y Distance to sun in m: %0.0f" ), pDoc->EarthY
+		_T( "Y Distance to sun in m: %g" ), pDoc->EarthY
 	);
-	csAngle.Format( _T( "Angle in deg: %0.02f" ), EarthAngleInDegrees );
+	csAngle.Format( _T( "Angle in deg: %2.2f" ), EarthAngleInDegrees );
 	csSample.Format
 	(
-		_T( "Time between samples in s: %0.0f" ), SampleTime
+		_T( "Time between samples in s: %g" ), SampleTime
 	);
 	csSamplesPerDay.Format
 	(
-		_T( "Samples per day: %0.0f" ), pDoc->SamplesPerDay
+		_T( "Samples per day: %g" ), pDoc->SamplesPerDay
 	);
 
 	// running time is in seconds, so divide by the number of seconds in a day
 	// to display the running time in days
 	csRunningTime.Format
 	(
-		_T( "Running time in days: %0.01f" ), pDoc->RunningTime / 86400
+		_T( "Running time in days: %4.2f" ), pDoc->RunningTime / 86400
 	);
 
 	// prepare the device context
@@ -1122,8 +1122,8 @@ void CEarthOrbitView::UpdateEarthPosition()
 {
 	CEarthOrbitDoc* pDoc = Document;
 
-	// 364 days in seconds
-	const double dSeconds = 364 * 86400;
+	// 365 days in seconds
+	const double dSeconds = 365 * 86400/* / 4*/;
 
 	// starting positions
 	double dX = pDoc->EarthX;
@@ -1166,11 +1166,11 @@ void CEarthOrbitView::UpdateEarthPosition()
 	{
 		// the acceleration of gravity in the X direction using 
 		// right triangle proportion
-		const double dNewAx = -dA * dX / dR;
+		const double dNewAx = dA * dX / dR;
 
 		// the acceleration of gravity in the Y direction using 
 		// right triangle proportion
-		const double dNewAy = -dA * dY / dR;
+		const double dNewAy = dA * dY / dR;
 
 		// the new X velocity in the X direction is the original X velocity
 		// plus X acceleration multiplied by the time increment
@@ -1197,12 +1197,8 @@ void CEarthOrbitView::UpdateEarthPosition()
 		// we are close to the expected result)
 		if ( bSingleOrbit && dTime > dSeconds )
 		{
-			// difference between the previous X and the new one
-			const double dDelta = dNewX - dX;
-
-			// if the delta is negative, we have reached the beginning
-			// of the orbit
-			const bool bDelta = dDelta < 0;
+			// X velocity goes negative when returned to 0 degrees
+			const bool bDelta = dNewVx <= 0;
 			if ( bDelta )
 			{
 				KillTimer( 1 );
@@ -1212,17 +1208,20 @@ void CEarthOrbitView::UpdateEarthPosition()
 			}
 		}
 
-		// update the current acceleration, velocity and 
-		// position for the next time slice
-		dAx = dNewAx;
-		dAy = dNewAy;
-		dVx = dNewVx;
-		dVy = dNewVy;
-		dX = dNewX;
-		dY = dNewY;
+		if ( !bDone )
+		{
+			// update the current acceleration, velocity and 
+			// position for the next time slice
+			dAx = dNewAx;
+			dAy = dNewAy;
+			dVx = dNewVx;
+			dVy = dNewVy;
+			dX = dNewX;
+			dY = dNewY;
 
-		// update the running time
-		dTime += dSt;
+			// update the running time
+			dTime += dSt;
+		}
 	}
 
 	// record the final result into the document

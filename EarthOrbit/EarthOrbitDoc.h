@@ -485,7 +485,7 @@ public:
 		const double dM = MassOfTheSun;
 		const double dR = EarthDistance;
 		const double dR2 = dR * dR;
-		m_dEarthSolarGravity = dG * dM / dR2;
+		m_dEarthSolarGravity = -dG * dM / dR2;
 		return m_dEarthSolarGravity;
 	}
 	// acceleration of gravity on the earth due to the sun
